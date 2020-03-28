@@ -2,8 +2,10 @@
 # author: cuba3
 # github: https://github.com/cuba3/pyGregorian2LunarCalendar
 
-# 去除空行
-from config import encryptionVectorList, thingsSort
+try:
+    from config import encryptionVectorList, thingsSort
+except:
+    from .config import encryptionVectorList, thingsSort
 
 
 def not_empty(s):

@@ -9,19 +9,34 @@
 
 
 from datetime import datetime, timedelta
-from config import *
-from holidays import otherLunarHolidaysList, otherHolidaysList, legalsolarTermsHolidayDic, legalHolidaysDic, \
-    legalLunarHolidaysDic
-from solar24 import getTheYearAllSolarTermsList
-from tools import sortCollation
-
+from dateutil.parser import parse
+try:
+    from config import *
+    from holidays import otherLunarHolidaysList, otherHolidaysList, legalsolarTermsHolidayDic, legalHolidaysDic, \
+        legalLunarHolidaysDic
+    from solar24 import getTheYearAllSolarTermsList
+    from tools import sortCollation
+except:
+    from .config import *
+    from .holidays import otherLunarHolidaysList, otherHolidaysList, legalsolarTermsHolidayDic, legalHolidaysDic, \
+        legalLunarHolidaysDic
+    from .solar24 import getTheYearAllSolarTermsList
+    from .tools import sortCollation
 
 class Lunar():
+    """阴历、"""
     def __str__(self):
         return f"农历{self.lunarYear}年{'闰' if self.isLunarLeapMonth else ''}{self.lunarMonth}月{self.lunarDay}日"
 
-    def __init__(self, date):
-        self.date = date
+    def __init__(self, date=None):
+        self.date=date
+        if self.date is None:
+            self.date=datetime.now()
+        elif isinstance(self.date,[str,int]):
+            self.date = parse(str(date))
+        else:
+            self.date=datetime(self.date)
+
         self.twohourNum = (self.date.hour + 1) // 2 % 12
         self._upper_year = ''
         self.isLunarLeapMonth = False
