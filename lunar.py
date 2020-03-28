@@ -32,7 +32,7 @@ class Lunar():
         self.date=date
         if self.date is None:
             self.date=datetime.now()
-        elif isinstance(self.date,[str,int]):
+        elif isinstance(self.date,(str,int)):
             self.date = parse(str(date))
         else:
             self.date=datetime(self.date)
