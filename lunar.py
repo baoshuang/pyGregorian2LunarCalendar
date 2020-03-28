@@ -17,60 +17,69 @@ from tools import sortCollation
 
 
 class Lunar():
-    def __init__(self,date):
+    def __str__(self):
+        return f"农历{self.lunarYear}年{'闰' if self.isLunarLeapMonth else ''}{self.lunarMonth}月{self.lunarDay}日"
+
+    def __init__(self, date):
         self.date = date
         self.twohourNum = (self.date.hour + 1) // 2 % 12
         self._upper_year = ''
         self.isLunarLeapMonth = False
         (self.lunarYear, self.lunarMonth, self.lunarDay) = self.get_lunarDateNum()
-        (self.lunarYearCn,self.lunarMonthCn,self.lunarDayCn)=self.get_lunarCn()
+        (self.lunarYearCn, self.lunarMonthCn, self.lunarDayCn) = self.get_lunarCn()
 
         (self.year8Char, self.month8Char, self.day8Char) = self.get_the8char()
-        self.get_earthNum(),self.get_heavenNum(),self.get_season()
+        self.get_earthNum(), self.get_heavenNum(), self.get_season()
         self.twohour8CharList = self.get_twohour8CharList()
         self.twohour8Char = self.get_twohour8Char()
         self.get_today12DayOfficer()
 
-        self.chineseYearZodiac=self.get_chineseYearZodiac()
-        self.chineseZodiacClash=self.get_chineseZodiacClash()
-        self.weekDayCn=self.get_weekDayCn()
-        self.todaySolarTerms=self.get_todaySolarTerms()
-        self.starZodiac=self.get_starZodiac()
-        self.todayEastZodiac=self.get_eastZodiac()
-        self.thisYearSolarTermsDic=dict(zip(solarTermsNameList, self.solarTermsDateList))
+        self.chineseYearZodiac = self.get_chineseYearZodiac()
+        self.chineseZodiacClash = self.get_chineseZodiacClash()
+        self.weekDayCn = self.get_weekDayCn()
+        self.todaySolarTerms = self.get_todaySolarTerms()
+        self.starZodiac = self.get_starZodiac()
+        self.todayEastZodiac = self.get_eastZodiac()
+        self.thisYearSolarTermsDic = dict(zip(solarTermsNameList, self.solarTermsDateList))
 
-        self.today28Star=self.get_the28Stars()
+        self.today28Star = self.get_the28Stars()
 
-        self.meridians=meridiansName[self.twohourNum]
+        self.meridians = meridiansName[self.twohourNum]
+
     def get_lunarYearCN(self):
         for i in str(self.lunarYear):
             self._upper_year += upperNum[int(i)]
         return self._upper_year
+
     def get_lunarMonthCN(self):
         # leap = (self.lunarMonth >> 4) & 0xf
         # m = self.lunarMonth & 0xf
         lunarMonth = lunarMonthNameList[(self.lunarMonth - 1) % 12]
-        thisLunarMonthDays=self.monthDaysList[0]
+        thisLunarMonthDays = self.monthDaysList[0]
         if self.isLunarLeapMonth:
             lunarMonth = "闰" + lunarMonth
             thisLunarMonthDays = self.monthDaysList[2]
         if thisLunarMonthDays < 30:
-            return lunarMonth+'小'
+            return lunarMonth + '小'
         else:
             return lunarMonth + '大'
+
     def get_lunarCn(self):
         return self.get_lunarYearCN(), self.get_lunarMonthCN(), lunarDayNameList[(self.lunarDay - 1) % 30]
+
     # 生肖
     def get_chineseYearZodiac(self):
         return chineseZodiacNameList[(self.lunarYear - 4) % 12]
+
     def get_chineseZodiacClash(self):
-        zodiacNum=self.dayEarthNum
-        zodiacClashNum=(zodiacNum+ 6) % 12
-        self.zodiacMark6=chineseZodiacNameList[(25-zodiacNum)%12]
-        self.zodiacMark3List=[chineseZodiacNameList[(zodiacNum+4)%12],chineseZodiacNameList[(zodiacNum+8)%12]]
-        self.zodiacWin=chineseZodiacNameList[zodiacNum]
-        self.zodiacLose=chineseZodiacNameList[zodiacClashNum]
-        return self.zodiacWin+'日冲'+self.zodiacLose
+        zodiacNum = self.dayEarthNum
+        zodiacClashNum = (zodiacNum + 6) % 12
+        self.zodiacMark6 = chineseZodiacNameList[(25 - zodiacNum) % 12]
+        self.zodiacMark3List = [chineseZodiacNameList[(zodiacNum + 4) % 12],
+                                chineseZodiacNameList[(zodiacNum + 8) % 12]]
+        self.zodiacWin = chineseZodiacNameList[zodiacNum]
+        self.zodiacLose = chineseZodiacNameList[zodiacClashNum]
+        return self.zodiacWin + '日冲' + self.zodiacLose
 
     # 星期
     def get_weekDayCn(self):
@@ -78,6 +87,7 @@ class Lunar():
         :return: 星期三
         '''
         return weekDay[self.date.weekday()]
+
     # 农历月数
     def getMonthLeapMonthLeapDays(self):
         """ 计算阴历月天数
@@ -91,7 +101,7 @@ class Lunar():
         # if (_cn_year < START_YEAR):
         #     return 30
         leap_month, leap_day, month_day = 0, 0, 0  # 闰几月，该月多少天 传入月份多少天
-        tmp = lunarMonthData[self.lunarYear - START_YEAR] # 获取16进制数据12-1月份农历日数 0=29天 1=30天
+        tmp = lunarMonthData[self.lunarYear - START_YEAR]  # 获取16进制数据12-1月份农历日数 0=29天 1=30天
         # 表示获取当前月份的布尔值:指定二进制1（假定真），向左移动月数-1，与当年全年月度数据合并取出2进制位作为判断
         if tmp & (1 << (self.lunarMonth - 1)):
             month_day = 30
@@ -104,8 +114,9 @@ class Lunar():
                 leap_day = 30
             else:
                 leap_day = 29
-        self.monthDaysList=[month_day, leap_month, leap_day]
+        self.monthDaysList = [month_day, leap_month, leap_day]
         return month_day, leap_month, leap_day
+
     # # # 基础 # # #
     def get_lunarDateNum(self):
         """ 获取数字形式的农历日期
@@ -151,12 +162,14 @@ class Lunar():
                 if (self.lunarMonth == _leap_month):
                     _month_days = _leap_day
                     if (abs(_span_days) <= _month_days):  # 指定日期在闰月中
-                        self.lunarMonth = (_leap_month << 4) | self.lunarMonth
+                        self.lunarMonth = _leap_month  # (_leap_month << 4) | self.lunarMonth
+                        self.isLunarLeapMonth = True
                         break
                     _span_days += _month_days
                 _month_days = self.getMonthLeapMonthLeapDays()[0]
             self.lunarDay += (_month_days + _span_days)  # 从月份总数中倒扣 得到天数
             return self.lunarYear, self.lunarMonth, self.lunarDay
+
     # # # 24节气部分
     def getSolarTermsDateList(self):
         solarTermsList = getTheYearAllSolarTermsList(self.date.year)
@@ -166,9 +179,9 @@ class Lunar():
             month = i // 2 + 1
             self.solarTermsDateList.append((month, day))
         return self.solarTermsDateList
-    def getNextNum(self,findDate,solarTermsDateList):
-        return len(list(filter(lambda y: y <= findDate, solarTermsDateList)))%24
 
+    def getNextNum(self, findDate, solarTermsDateList):
+        return len(list(filter(lambda y: y <= findDate, solarTermsDateList))) % 24
 
     def get_todaySolarTerms(self):
         '''
@@ -176,7 +189,7 @@ class Lunar():
         '''
         solarTermsDateList = self.getSolarTermsDateList()
         findDate = (self.date.month, self.date.day)
-        nextNum = self.getNextNum(findDate,solarTermsDateList)
+        nextNum = self.getNextNum(findDate, solarTermsDateList)
         self.nextSolarTerm = solarTermsNameList[nextNum]
         if findDate in solarTermsDateList:
             todaySolarTerm = solarTermsNameList[solarTermsDateList.index(findDate)]
@@ -186,34 +199,34 @@ class Lunar():
 
     # 星次
     def get_eastZodiac(self):
-        todayEastZodiac=eastZodiacList[(solarTermsNameList.index(self.nextSolarTerm)-1)%24//2]
+        todayEastZodiac = eastZodiacList[(solarTermsNameList.index(self.nextSolarTerm) - 1) % 24 // 2]
         return todayEastZodiac
-
 
     # # # 八字部分
     def get_year8Char(self):
-        str=the10HeavenlyStems[(self.lunarYear-4)%10] + the12EarthlyBranches[(self.lunarYear - 4) % 12]
+        str = the10HeavenlyStems[(self.lunarYear - 4) % 10] + the12EarthlyBranches[(self.lunarYear - 4) % 12]
         return str
+
     # 月八字与节气相关
     def get_month8Char(self):
         findDate = (self.date.month, self.date.day)
-        solarTermsDateList=self.getSolarTermsDateList()
-        nextNum = self.getNextNum(findDate,solarTermsDateList)
+        solarTermsDateList = self.getSolarTermsDateList()
+        nextNum = self.getNextNum(findDate, solarTermsDateList)
         # 2019年正月为丙寅月
-        if nextNum==0 and self.date.month==12:
-            nextNum=24
-        apartNum=(nextNum+1)//2
+        if nextNum == 0 and self.date.month == 12:
+            nextNum = 24
+        apartNum = (nextNum + 1) // 2
         # (year-2019)*12+apartNum每年固定差12个月回到第N年月柱，2019小寒甲子，加上当前过了几个节气除以2+(nextNum-1)//2，减去1
-        month8Char=the60HeavenlyEarth[((self.date.year-2019)*12+apartNum)%60]
+        month8Char = the60HeavenlyEarth[((self.date.year - 2019) * 12 + apartNum) % 60]
         return month8Char
 
     def get_day8Char(self):
-        apart=self.date-datetime(2019,1,29)
-        baseNum=the60HeavenlyEarth.index('丙寅')
+        apart = self.date - datetime(2019, 1, 29)
+        baseNum = the60HeavenlyEarth.index('丙寅')
         # 超过23点算第二天，为防止溢出，在baseNum上操作+1
         if self.twohourNum == 12:
-            baseNum+=1
-        self.dayHeavenlyEarthNum=(apart.days+baseNum)%60
+            baseNum += 1
+        self.dayHeavenlyEarthNum = (apart.days + baseNum) % 60
         return the60HeavenlyEarth[self.dayHeavenlyEarthNum]
 
     def get_twohour8CharList(self):
@@ -225,55 +238,60 @@ class Lunar():
         return self.twohour8CharList[self.twohourNum]
 
     def get_the8char(self):
-        return self.get_year8Char(),self.get_month8Char(),self.get_day8Char()
+        return self.get_year8Char(), self.get_month8Char(), self.get_day8Char()
 
     def get_earthNum(self):
         self.yearEarthNum = the12EarthlyBranches.index(self.year8Char[1])
-        self.monthEarthNum=the12EarthlyBranches.index(self.month8Char[1])
-        self.dayEarthNum=the12EarthlyBranches.index(self.day8Char[1])
-        return self.yearEarthNum,self.monthEarthNum,self.dayEarthNum
+        self.monthEarthNum = the12EarthlyBranches.index(self.month8Char[1])
+        self.dayEarthNum = the12EarthlyBranches.index(self.day8Char[1])
+        return self.yearEarthNum, self.monthEarthNum, self.dayEarthNum
 
     def get_heavenNum(self):
         self.yearHeavenNum = the10HeavenlyStems.index(self.year8Char[0])
         self.monthHeavenNum = the10HeavenlyStems.index(self.month8Char[0])
         self.dayHeavenNum = the10HeavenlyStems.index(self.day8Char[0])
-        return self.yearHeavenNum,self.monthHeavenNum,self.dayHeavenNum
+        return self.yearHeavenNum, self.monthHeavenNum, self.dayHeavenNum
+
     # 季节
     def get_season(self):
-        self.seasonType= self.monthEarthNum % 3
+        self.seasonType = self.monthEarthNum % 3
         self.seasonNum = ((self.monthEarthNum - 2) % 12) // 3
         self.lunarSeason = '仲季孟'[self.seasonType] + '春夏秋冬'[self.seasonNum]
+
     # 星座
     def get_starZodiac(self):
         return starZodiacName[len(list(filter(lambda y: y <= (self.date.month, self.date.day), starZodiacDate))) % 12]
+
     # 节日
     def get_legalHolidays(self):
-        temp=''
+        temp = ''
         if self.todaySolarTerms in legalsolarTermsHolidayDic:
-            temp+=legalsolarTermsHolidayDic[self.todaySolarTerms]+' '
-        if (self.date.month,self.date.day)in legalHolidaysDic:
-            temp+=legalHolidaysDic[(self.date.month,self.date.day)]+' '
-        if not self.lunarMonth>12:
-            if (self.lunarMonth,self.lunarDay)in legalLunarHolidaysDic:
-                temp+=legalLunarHolidaysDic[(self.lunarMonth,self.lunarDay)]
-        return temp.strip().replace(' ',',')
+            temp += legalsolarTermsHolidayDic[self.todaySolarTerms] + ' '
+        if (self.date.month, self.date.day) in legalHolidaysDic:
+            temp += legalHolidaysDic[(self.date.month, self.date.day)] + ' '
+        if not self.lunarMonth > 12:
+            if (self.lunarMonth, self.lunarDay) in legalLunarHolidaysDic:
+                temp += legalLunarHolidaysDic[(self.lunarMonth, self.lunarDay)]
+        return temp.strip().replace(' ', ',')
 
     def get_otherHolidays(self):
-        tempList,y,m,d,wn,w=[],self.date.year,self.date.month,self.date.day,self.date.isocalendar()[1],self.date.isocalendar()[2]
-        eastHolidays={5: (2, 7, '母亲节'), 6: (3, 7, '父亲节')}
+        tempList, y, m, d, wn, w = [], self.date.year, self.date.month, self.date.day, self.date.isocalendar()[1], \
+                                   self.date.isocalendar()[2]
+        eastHolidays = {5: (2, 7, '母亲节'), 6: (3, 7, '父亲节')}
         if m in eastHolidays:
-            t1dwn=datetime(y,m,1).isocalendar()[1]
-            if ((wn-t1dwn+1),w)==(eastHolidays[m][0],eastHolidays[m][1]):
+            t1dwn = datetime(y, m, 1).isocalendar()[1]
+            if ((wn - t1dwn + 1), w) == (eastHolidays[m][0], eastHolidays[m][1]):
                 tempList.append(eastHolidays[m][2])
-        holidayDic=otherHolidaysList[m-1]
+        holidayDic = otherHolidaysList[m - 1]
         if d in holidayDic:
             tempList.append(holidayDic[d])
-        if tempList!=[]:
+        if tempList != []:
             return ','.join(tempList)
         else:
             return ''
+
     def get_otherLunarHolidays(self):
-        if not self.lunarMonth>12:
+        if not self.lunarMonth > 12:
             holidayDic = otherLunarHolidaysList[self.lunarMonth - 1]
             if self.lunarDay in holidayDic:
                 return holidayDic[self.lunarDay]
@@ -282,7 +300,6 @@ class Lunar():
     # 彭祖百忌
     def get_pengTaboo(self, long=9, delimit=','):
         return pengTatooList[self.dayHeavenNum][:long] + delimit + pengTatooList[self.dayEarthNum + 10][:long]
-
 
     # 建除十二神，《淮南子》曰：正月建寅，则寅为建，卯为除，辰为满，巳为平，主生；午为定，未为执，主陷；申为破，主衡；酉为危，主杓；戍为成，主小德；亥为收，主大备；子为开，主太阳；丑为闭，主太阴。
     def get_today12DayOfficer(self):
@@ -297,17 +314,19 @@ class Lunar():
         thisMonthStartGodNum = (self.monthEarthNum) % 12
         # print(str(self.monthEarthNum) + '==========' + str(thisMonthStartGodNum))
         apartNum = self.dayEarthNum - thisMonthStartGodNum
-        self.today12DayGod = chinese12DayGods[apartNum% 12]
+        self.today12DayGod = chinese12DayGods[apartNum % 12]
         dayName = '黄道日' if apartNum in (0, 1, 4, 5, 7, 11) else '黑道日'
         self.today12DayOfficer = chinese12DayOfficers[apartNum % 12]
-        return self.today12DayOfficer,self.today12DayGod,dayName
+        return self.today12DayOfficer, self.today12DayGod, dayName
 
     # 八字与五行
     def get_the28Stars(self):
         apart = self.date - datetime(2019, 1, 17)
-        return the28StarsList[apart.days%28]
+        return the28StarsList[apart.days % 28]
+
     def get_nayin(self):
         return theHalf60HeavenlyEarth5ElementsList[the60HeavenlyEarth.index(self.day8Char) // 2]
+
     def get_today5Elements(self):
         nayin = self.get_nayin()
         tempList = ['天干', self.day8Char[0],
@@ -315,36 +334,40 @@ class Lunar():
                     '地支', self.day8Char[1],
                     '属' + the12EarthlyBranches5ElementsList[self.dayEarthNum],
                     '纳音', nayin[-1], '属' + nayin[-1],
-                    '廿八宿', self.today28Star[0],'宿',
+                    '廿八宿', self.today28Star[0], '宿',
                     '十二神', self.today12DayOfficer, '日'
                     ]
         return tempList
+
     def get_the9FlyStar(self):
         apartNum = (self.date - datetime(2019, 1, 17)).days
-        startNumList=[7,3,5,6,8,1,2,4,9]
-        flyStarList=[str((i - 1 - apartNum) % 9 + 1) for i in startNumList]
+        startNumList = [7, 3, 5, 6, 8, 1, 2, 4, 9]
+        flyStarList = [str((i - 1 - apartNum) % 9 + 1) for i in startNumList]
         return ''.join(flyStarList)
+
     def get_luckyGodsDirection(self):
-        todayNum=self.dayHeavenNum
-        direction=[
-        '喜神'+directionList[chinese8Trigrams.index(luckyGodDirection[todayNum])],
-        '财神'+directionList[chinese8Trigrams.index(wealthGodDirection[todayNum])],
-        '福神'+directionList[chinese8Trigrams.index(mascotGodDirection[todayNum])],
-        '阳贵'+directionList[chinese8Trigrams.index(sunNobleDirection[todayNum])],
-        '阴贵'+directionList[chinese8Trigrams.index(moonNobleDirection[todayNum])],
+        todayNum = self.dayHeavenNum
+        direction = [
+            '喜神' + directionList[chinese8Trigrams.index(luckyGodDirection[todayNum])],
+            '财神' + directionList[chinese8Trigrams.index(wealthGodDirection[todayNum])],
+            '福神' + directionList[chinese8Trigrams.index(mascotGodDirection[todayNum])],
+            '阳贵' + directionList[chinese8Trigrams.index(sunNobleDirection[todayNum])],
+            '阴贵' + directionList[chinese8Trigrams.index(moonNobleDirection[todayNum])],
         ]
         return direction
+
     def get_fetalGod(self):
         return fetalGodList[the60HeavenlyEarth.index(self.day8Char)]
+
     # 每日时辰凶吉
     def get_twohourLuckyList(self):
         def tmp2List(tmp):
             return ['凶' if tmp & (2 ** (12 - i)) > 0 else '吉' for i in range(1, 13)]
-        todayNum=self.dayHeavenlyEarthNum
-        tomorrowNum=(self.dayHeavenlyEarthNum+1)%60
-        outputList=(tmp2List(twohourLuckyTimeList[todayNum])+tmp2List(twohourLuckyTimeList[tomorrowNum]))
-        return outputList[:13]
 
+        todayNum = self.dayHeavenlyEarthNum
+        tomorrowNum = (self.dayHeavenlyEarthNum + 1) % 60
+        outputList = (tmp2List(twohourLuckyTimeList[todayNum]) + tmp2List(twohourLuckyTimeList[tomorrowNum]))
+        return outputList[:13]
 
     # 宜忌等第表 计算凶吉
     def getTodayThingLevel(self):
@@ -357,28 +380,28 @@ class Lunar():
         # 下下：凶叠大凶，遇德亦诸事皆忌；卯酉月 灾煞遇 月破、月厌  月厌遇灾煞、月破
         # level = {0: '上', 1: '上次', 2: '中', 3: '中次', 4: '下', 5: '下下', -1: '无'}
         '''
-        badGodDic={
+        badGodDic = {
             '平日': [
-                ('亥', ['相日', '时德', '六合'],0),
-                ('巳', ['相日', '六合', '月刑'],1),
-                ('申', ['相日', '月害'],2),
-                ('寅', ['相日', '月害', '月刑'],3),
+                ('亥', ['相日', '时德', '六合'], 0),
+                ('巳', ['相日', '六合', '月刑'], 1),
+                ('申', ['相日', '月害'], 2),
+                ('寅', ['相日', '月害', '月刑'], 3),
                 ('卯午酉', ['天吏'], 3),
-                ('辰戌丑未', ['月煞'],4),
-                ('子', ['天吏', '月刑'],4)
+                ('辰戌丑未', ['月煞'], 4),
+                ('子', ['天吏', '月刑'], 4)
             ],
             '收日': [
-                ('寅申', ['长生', '六合', '劫煞'],0),
-                ('巳亥', ['长生', '劫煞'],2),
-                ('辰未', ['月害'],2),
-                ('子午酉', ['大时'],3),
+                ('寅申', ['长生', '六合', '劫煞'], 0),
+                ('巳亥', ['长生', '劫煞'], 2),
+                ('辰未', ['月害'], 2),
+                ('子午酉', ['大时'], 3),
                 ('丑戌', ['月刑'], 3),
                 ('卯', ['大时'], 4),
             ],
-            '闭日':  [
-                ('子午卯酉', ['王日'],3),
-                ('辰戌丑未', ['官日', '天吏'],3),
-                ('寅申巳亥', ['月煞'],4)
+            '闭日': [
+                ('子午卯酉', ['王日'], 3),
+                ('辰戌丑未', ['官日', '天吏'], 3),
+                ('寅申巳亥', ['月煞'], 4)
             ],
             '劫煞': [
                 # ('寅申', ['长生', '六合', '收日'], 0
@@ -444,16 +467,15 @@ class Lunar():
         }
         # 判断是否德大会 大时 与 月德相会
 
-
-        todayAllGodName =self.goodGodName + self.badGodName+ [self.today12DayOfficer + '日']
-        l=-1
+        todayAllGodName = self.goodGodName + self.badGodName + [self.today12DayOfficer + '日']
+        l = -1
         for gnoItem in todayAllGodName:
             if gnoItem in badGodDic:
                 for item in badGodDic[gnoItem]:
                     if self.month8Char[1] in item[0]:
                         for godname in item[1]:
-                            if godname in todayAllGodName and item[2]>l:
-                                l=item[2]
+                            if godname in todayAllGodName and item[2] > l:
+                                l = item[2]
                                 break
         return l
 
@@ -491,6 +513,7 @@ class Lunar():
                '除': ['嫁娶', '赴任', '出行', '立契'], '满': ['安葬', '赴任', '求医'], '定': ['诉讼', '出行', '交涉'],
                '执': ['开市', '求财', '出行', '搬迁'], '破': ['嫁娶', '立契', '交涉', '出行', '搬迁'],
                '危': ['出行', '嫁娶', '安葬', '迁徙'], '成': ['诉讼'], '开': ['放债', '诉讼', '安葬']}
+
         def defauleThing(o):
             dic = {'goodName': [], 'badName': [], 'goodThing': [], 'badThing': []}
             if o in good:
@@ -499,25 +522,29 @@ class Lunar():
                 dic['badThing'] = bad[o]
             return dic
 
-        goodBadGodAndThingDic=defauleThing(self.today12DayOfficer)
+        goodBadGodAndThingDic = defauleThing(self.today12DayOfficer)
 
-        bujiang=['壬寅壬辰辛丑辛卯辛巳庚寅庚辰丁丑丁卯丁巳戊寅戊辰','辛丑辛卯庚子庚寅庚辰丁丑丁卯丙子丙寅丙辰戊子戊寅戊辰','辛亥辛丑辛卯庚子庚寅丁亥丁丑丁卯丙子丙寅戊子戊寅','庚戌庚子庚寅丁亥丁丑丙戌丙子丙寅乙亥乙丑戊戌戊子戊寅','丁酉丁亥丁丑丙戌丙子乙酉乙亥乙丑甲戌甲子戊戌戊子','丁酉丁亥丙申丙戌丙子乙酉乙亥甲申甲戌甲子戊申戊戌戊子','丙申丙戌乙未乙酉乙亥甲申甲戌癸未癸酉癸亥戊申戊戌','乙未乙酉甲午甲申甲戌癸未癸酉壬午壬申壬戌戊午戊申戊戌','乙巳乙未乙酉甲午甲申癸巳癸未癸酉壬午壬申戊午戊申','甲辰甲午甲申癸巳癸未壬辰壬午壬申辛巳辛未戊辰戊午戊申','癸卯癸巳癸未壬辰壬午辛卯辛巳辛未庚辰庚午戊辰戊午','癸卯癸巳壬寅壬辰壬午辛卯辛巳庚寅庚辰庚午戊寅戊辰戊午']
-        mrY13 = [(1, 13), (2, 11), (3, 9), (4, 7), (5, 5), (6, 2), (7, 1), (7, 29), (8, 27), (9, 25), (10, 23), (11, 21),(12, 19)]
+        bujiang = ['壬寅壬辰辛丑辛卯辛巳庚寅庚辰丁丑丁卯丁巳戊寅戊辰', '辛丑辛卯庚子庚寅庚辰丁丑丁卯丙子丙寅丙辰戊子戊寅戊辰', '辛亥辛丑辛卯庚子庚寅丁亥丁丑丁卯丙子丙寅戊子戊寅',
+                   '庚戌庚子庚寅丁亥丁丑丙戌丙子丙寅乙亥乙丑戊戌戊子戊寅', '丁酉丁亥丁丑丙戌丙子乙酉乙亥乙丑甲戌甲子戊戌戊子', '丁酉丁亥丙申丙戌丙子乙酉乙亥甲申甲戌甲子戊申戊戌戊子',
+                   '丙申丙戌乙未乙酉乙亥甲申甲戌癸未癸酉癸亥戊申戊戌', '乙未乙酉甲午甲申甲戌癸未癸酉壬午壬申壬戌戊午戊申戊戌', '乙巳乙未乙酉甲午甲申癸巳癸未癸酉壬午壬申戊午戊申',
+                   '甲辰甲午甲申癸巳癸未壬辰壬午壬申辛巳辛未戊辰戊午戊申', '癸卯癸巳癸未壬辰壬午辛卯辛巳辛未庚辰庚午戊辰戊午', '癸卯癸巳壬寅壬辰壬午辛卯辛巳庚寅庚辰庚午戊寅戊辰戊午']
+        mrY13 = [(1, 13), (2, 11), (3, 9), (4, 7), (5, 5), (6, 2), (7, 1), (7, 29), (8, 27), (9, 25), (10, 23),
+                 (11, 21), (12, 19)]
         tomorrow = self.date + timedelta(days=1)
-        tmd=(tomorrow.month, tomorrow.day)
-        t4l=[self.thisYearSolarTermsDic[i] for i in ['春分', '夏至', '秋分', '冬至']]
-        t4j=[self.thisYearSolarTermsDic[i] for i in ['立春', '立夏', '立秋', '立冬']]
-        s=self.today28Star
-        d=self.day8Char
-        den=self.dayEarthNum
-        dhen=self.dayHeavenlyEarthNum
-        sn=self.seasonNum
+        tmd = (tomorrow.month, tomorrow.day)
+        t4l = [self.thisYearSolarTermsDic[i] for i in ['春分', '夏至', '秋分', '冬至']]
+        t4j = [self.thisYearSolarTermsDic[i] for i in ['立春', '立夏', '立秋', '立冬']]
+        s = self.today28Star
+        d = self.day8Char
+        den = self.dayEarthNum
+        dhen = self.dayHeavenlyEarthNum
+        sn = self.seasonNum
         # st=self.seasonType
-        yhn=self.yearHeavenNum
-        yen=self.yearEarthNum
-        men=self.monthEarthNum
-        ldn=self.lunarDay
-        lmn=self.lunarMonth
+        yhn = self.yearHeavenNum
+        yen = self.yearEarthNum
+        men = self.monthEarthNum
+        ldn = self.lunarDay
+        lmn = self.lunarMonth
         # item参数规则，（name,当日判断结果,判断规则,宜事,忌事）
         angel = [
             ('岁德', '甲庚丙壬戊甲庚丙壬戊'[yhn], d, ['修造', '动土', '嫁娶', '纳采', '移徙', '入宅']),
@@ -527,10 +554,10 @@ class Lunar():
             # 月德20190208《天宝历》曰：“月德者，月之德神也。取土、修营宜向其方，宴乐、上官利用其日。
             ('月德合', '乙辛己丁'[lmn % 4], d[0], ['上书', '祭祀', '修造', '动土', '赴任', '出行', '嫁娶', '移徙', '开市', '纳财', '纳畜', '种植'],
              ['诉讼']),
-            ('天德', '丁申壬辛亥甲癸寅丙乙巳庚'[lmn%12], d,
+            ('天德', '丁申壬辛亥甲癸寅丙乙巳庚'[lmn % 12], d,
              ['嫁娶', '祭祀', '修造', '上书', '动土', '祈福', '入宅', '安葬', '订婚', '六礼', '宴会', '纳采', '修仓', '栽种', '求医', '赴任', '雪冤',
               '竖柱']),  # 天德'巳庚丁申壬辛亥甲癸寅丙乙'天德合'申乙壬巳丁丙寅己戊亥辛庚'
-            ('天德合', '壬空丁丙空己戊空辛庚空乙'[lmn%12], d,
+            ('天德合', '壬空丁丙空己戊空辛庚空乙'[lmn % 12], d,
              ['嫁娶', '祭祀', '修造', '上书', '动土', '祈福', '入宅', '安葬', '订婚', '六礼', '宴会', '纳采', '修仓', '栽种', '求医', '赴任', '雪冤',
               '竖柱']),
             ('凤凰日', s[0], '危昴胃毕'[sn], ['嫁娶']),
@@ -656,7 +683,7 @@ class Lunar():
             ('枯鱼', '申巳辰丑戌未卯子酉午寅亥'[men], d, ['栽种']),
             ('九空', '申巳辰丑戌未卯子酉午寅亥'[men], d, ['出行', '求财', '开仓', '种植', '进人', '开仓', '修仓', '开市', '立券', '交易', '纳财', '出货']),
             ('八座', '酉戌亥子丑寅卯辰巳午未申'[men], d, []),
-            ('八风', d, ('丁丑己酉','甲申甲辰','辛未丁未','甲戌甲寅')[sn], ['取鱼','乘船']),
+            ('八风', d, ('丁丑己酉', '甲申甲辰', '辛未丁未', '甲戌甲寅')[sn], ['取鱼', '乘船']),
             ('血忌', '午子丑未寅申卯酉辰戌巳亥'[men], d, ['针灸', '纳畜', '刺血', '阉割', '六畜', '穿鼻']),
             ('阴错', '壬子癸丑庚寅辛卯庚辰丁巳丙午丁未甲申乙酉甲戌癸亥'[men * 2:men * 2 + 2], d, ['赴任']),
             ('三娘煞', ldn, (3, 7, 13, 18, 22, 27), ['嫁娶']),
@@ -711,10 +738,11 @@ class Lunar():
               '破土', '安葬', '启攒']),
             ('大煞', '申酉戌巳午未寅卯辰亥子丑'[men], d, [])
         ]
+
         # 配合angel、demon的数据结构的吉神凶神筛选
         def getTodayGoodBadThing(dic):
-            for i in [(angel,'goodName','goodThing'),(demon, 'badName', 'badThing')]:
-                godDb,godNameKey,thingKey=i[0],i[1],i[2]
+            for i in [(angel, 'goodName', 'goodThing'), (demon, 'badName', 'badThing')]:
+                godDb, godNameKey, thingKey = i[0], i[1], i[2]
                 # print(demon)
                 for godItem in godDb:
                     # print(x, x[1] , x[2]) 输出当日判断结果x[1]，看x[1]是否落在判断范围x[2]里面
@@ -722,18 +750,17 @@ class Lunar():
                         dic[godNameKey] += [godItem[0]]
                         dic[thingKey] += godItem[3]
                 # 宜列、忌列分别去重
-                dic[thingKey]=list(set(dic[thingKey]))
+                dic[thingKey] = list(set(dic[thingKey]))
             return dic
 
-        goodBadGodAndThingDic=getTodayGoodBadThing(goodBadGodAndThingDic)
+        goodBadGodAndThingDic = getTodayGoodBadThing(goodBadGodAndThingDic)
 
         self.goodGodName = goodBadGodAndThingDic['goodName']
         self.badGodName = goodBadGodAndThingDic['badName']
         # 宜忌等第等级
-        todayThingLevel=self.getTodayThingLevel()
+        todayThingLevel = self.getTodayThingLevel()
         # 是否遇德
         #
-
 
         # 不完备做法，预备替换成宜忌等第表
 
@@ -781,9 +808,11 @@ class Lunar():
             if i[0] in goodBadGodAndThingDic['goodName']:
                 goodBadGodAndThingDic['goodThing'] = list(set(goodBadGodAndThingDic['goodThing'] + i[3]))
         # 排序
-        for removeThing in list(set(goodBadGodAndThingDic['goodThing']).intersection(set(goodBadGodAndThingDic['badThing']))):
+        for removeThing in list(
+            set(goodBadGodAndThingDic['goodThing']).intersection(set(goodBadGodAndThingDic['badThing']))):
             goodBadGodAndThingDic['badThing'].remove(removeThing)
         # 输出排序调整
         goodBadGodAndThingDic['goodThing'].sort(key=sortCollation)
         goodBadGodAndThingDic['badThing'].sort(key=sortCollation)
-        return (goodBadGodAndThingDic['goodName'],goodBadGodAndThingDic['badName']),(goodBadGodAndThingDic['goodThing'],goodBadGodAndThingDic['badThing'])
+        return (goodBadGodAndThingDic['goodName'], goodBadGodAndThingDic['badName']), (
+        goodBadGodAndThingDic['goodThing'], goodBadGodAndThingDic['badThing'])
